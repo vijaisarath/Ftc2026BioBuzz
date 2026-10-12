@@ -1,6 +1,5 @@
-## TeamCode Module
-
 ## Welcome Techno Creators!
+---
 
 ## NOTICE
 This repository contains Techno creators team public FTC BIOBUZZ (2026-2027) competition code.
