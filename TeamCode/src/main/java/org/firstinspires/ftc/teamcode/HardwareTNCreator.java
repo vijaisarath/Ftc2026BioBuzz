@@ -124,6 +124,6 @@ public class HardwareTNCreator {
 
         leftIntake_srv.setDirection(DcMotorSimple.Direction.FORWARD);
         rightIntake_srv.setDirection(DcMotorSimple.Direction.REVERSE);
-        pusher_srv.setDirection(DcMotorSimple.Direction.REVERSE);
+        pusher_srv.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 }

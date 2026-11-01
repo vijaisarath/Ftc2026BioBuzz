@@ -89,34 +89,33 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
 
             // ON/OFF shooter
             if (gamepad2.x) {
-                //myRobot.leftShooter.setPower(FWD);
                 myRobot.leftIntake_srv.setPower(1.0);
                 myRobot.rightIntake_srv.setPower(1.0);
-
-                myRobot.shooterMotor.setPower(1.0);
-
-                sleep(1000);
+                myRobot.pusher_srv.setPower(0.5);
+                myRobot.intakeMotor.setPower(1.0);
             } else if (gamepad2.y) {
                 //myRobot.leftShooter.setPower(0);
                 myRobot.leftIntake_srv.setPower(0);
                 myRobot.rightIntake_srv.setPower(0);
+                myRobot.intakeMotor.setPower(0);
 
-                myRobot.shooterMotor.setPower(0.0);
+
+                myRobot.pusher_srv.setPower(0.0);
 
             }
 
-            if (gamepad2.dpad_up) {
-                myRobot.pusher_srv.setPower(0.5);
-            } else if (gamepad2.dpad_down) {
-                myRobot.pusher_srv.setPower(0);
-            }
-
+//            if (gamepad2.dpad_up) {
+//            } else if (gamepad2.dpad_down) {
+//                myRobot.pusher_srv.setPower(0);
+//            }
 
             // ON/OFF intake wheel
             if (gamepad2.a) {
-                myRobot.intakeMotor.setPower(1.0);
+                myRobot.shooterMotor.setPower(0.5);
+
             } else if (gamepad2.b) {
-                myRobot.intakeMotor.setPower(0.0);
+                myRobot.shooterMotor.setPower(0);
+
             }
 
             telemetry.addData("FL | FR", "%.3f | %.3f", FL, FR);
