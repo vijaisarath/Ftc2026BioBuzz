@@ -29,16 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This is NOT an opmode.
@@ -63,9 +59,12 @@ public class HardwareTNCreator {
     public DcMotor backLeftMotor = null;
     public DcMotor backRightMotor = null;
 
-    public DcMotor leftShooter = null;
+    public DcMotor shooterMotor = null;
     public DcMotor intakeMotor = null;
 
+    public CRServo leftIntake_srv = null;
+    public CRServo rightIntake_srv = null;
+    public CRServo pusher_srv = null;
     public static final double SHOOTER_SPEED = 0.35;
     public final double INTAKE_SPEED = 1.00;
 
@@ -92,8 +91,12 @@ public class HardwareTNCreator {
         backLeftMotor = hardwareMap.dcMotor.get("rearleft_motor");
         backRightMotor = hardwareMap.dcMotor.get("rearright_motor");
 
-        leftShooter = hardwareMap.dcMotor.get("left_shooter");
+        shooterMotor = hardwareMap.dcMotor.get("left_shooter");
         intakeMotor = hardwareMap.dcMotor.get("intake_shooter");
+
+        leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
+        rightIntake_srv = hardwareMap.crservo.get("rightintake_srv");
+        pusher_srv = hardwareMap.crservo.get("pusher_srv");
 
         // Set the drive motor direction:
         // "Reverse" the motor that runs backwards when connected directly to the battery
@@ -114,10 +117,13 @@ public class HardwareTNCreator {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        leftShooter.setDirection(DcMotor.Direction.FORWARD);
+        shooterMotor.setDirection(DcMotor.Direction.FORWARD);
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
-        leftShooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        leftIntake_srv.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightIntake_srv.setDirection(DcMotorSimple.Direction.REVERSE);
+        pusher_srv.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 }
