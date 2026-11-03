@@ -28,6 +28,11 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -62,6 +67,15 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
     HardwareTNCreator myRobot = new HardwareTNCreator();
 
+    // This declares the IMU needed to get the current direction the robot is facing
+    // This needs to be changed to match the orientation on your robot
+    RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
+            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+    RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
+            RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
+    RevHubOrientationOnRobot orientationOnRobot = new
+            RevHubOrientationOnRobot(logoDirection, usbDirection);
+
     @Override
     public void runOpMode() throws InterruptedException {
         myRobot.init(hardwareMap);
@@ -82,7 +96,17 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
 
-            drive(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
+            if (start < 0 || gamepad1.a) {
+                sleep(200);
+                myRobot.odo.resetPosAndIMU();
+                telemetry.addLine("Reset completed");
+                telemetry.update();
+                sleep(500);
+                start++;
+            }
+
+//            drive(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
+            driveFieldRelative(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
 
             //GAMEPAD 2
             FWD = Math.max(-myRobot.SHOOTER_MAX_MANUAL, Math.min(FWD, myRobot.SHOOTER_MAX_MANUAL));
@@ -98,16 +122,8 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
                 myRobot.leftIntake_srv.setPower(0);
                 myRobot.rightIntake_srv.setPower(0);
                 myRobot.intakeMotor.setPower(0);
-
-
                 myRobot.pusher_srv.setPower(0.0);
-
             }
-
-//            if (gamepad2.dpad_up) {
-//            } else if (gamepad2.dpad_down) {
-//                myRobot.pusher_srv.setPower(0);
-//            }
 
             // ON/OFF intake wheel
             if (gamepad2.a) {
@@ -125,6 +141,27 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             telemetry.addData("Left Shooter", "%.3f", myRobot.shooterMotor.getPower());
             telemetry.addData("Intake motor", "%.3f", myRobot.intakeMotor.getPower());
             telemetry.addData("Theta Angle", theta);
+
+            //Verify ODO setting
+
+            // Read the latest data from Pinpoint
+             myRobot.odo.update();
+
+            // Position
+            telemetry.addData("X Position (mm)", myRobot.odo.getPosX(DistanceUnit.CM));
+            telemetry.addData("Y Position (mm)", myRobot.odo.getPosY(DistanceUnit.CM));
+
+            // Heading
+            telemetry.addData("Heading (degrees)",
+                    Math.toDegrees(myRobot.odo.getHeading(AngleUnit.RADIANS)));
+
+            // Raw encoder readings
+            telemetry.addData("X Encoder", myRobot.odo.getEncoderX());
+            telemetry.addData("Y Encoder", myRobot.odo.getEncoderY());
+
+            // Device performance
+            telemetry.addData("Frequency (Hz)", myRobot.odo.getFrequency());
+            telemetry.addData("Loop Time (us)", myRobot.odo.getLoopTime());
 
             telemetry.update();
             idle();
@@ -176,5 +213,25 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
         myRobot.frontRightMotor.setPower(FR);
         myRobot.backLeftMotor.setPower(BL);
         myRobot.backRightMotor.setPower(BR);
+    }
+
+    // This routine drives the robot field relative
+    private void driveFieldRelative(double forward, double right, double rotate) {
+        // First, convert direction being asked to drive to polar coordinates
+        theta = Math.atan2(forward, right);
+        double r = Math.hypot(right, forward);
+
+        myRobot.odo.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
+        double heading = myRobot.odo.getHeading(AngleUnit.RADIANS);
+
+        // Second, rotate angle by the angle the robot is pointing
+        theta = AngleUnit.normalizeRadians(theta - heading);
+
+        // Third, convert back to cartesian
+        double newForward = r * Math.sin(theta);
+        double newRight = r * Math.cos(theta);
+
+        // Finally, call the drive method with robot relative forward and right amounts
+        drive(newForward, newRight, rotate);
     }
 }
