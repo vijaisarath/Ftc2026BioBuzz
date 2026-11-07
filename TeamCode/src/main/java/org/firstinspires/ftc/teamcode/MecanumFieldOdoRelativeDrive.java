@@ -86,15 +86,22 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
         telemetry.update();
 
         FWD = 0.36;
+        myRobot.armServo.scaleRange(0.25,0.6);
+        myRobot.armServo.setPosition(0.0);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
-
         while (opModeIsActive()) {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
+
+            if (gamepad1.a) {
+                myRobot.armServo.setPosition(0.75); // DOWN
+            } else if (gamepad1.b) {
+                myRobot.armServo.setPosition(0.0); // UP
+            }
 
             if (start < 0 || gamepad1.a) {
                 sleep(200);
@@ -103,6 +110,23 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
                 telemetry.update();
                 sleep(500);
                 start++;
+            }
+
+            if (gamepad1.x) {
+                myRobot.armmotor.setPower(0.5);
+                sleep(950);
+                myRobot.armmotor.setPower(0);
+            } else if (gamepad1.y) {
+                myRobot.armmotor.setPower(-0.5);
+                sleep(950);
+                myRobot.armmotor.setPower(0);
+            }
+
+
+            if (gamepad1.dpad_up) {
+                myRobot.clawServo.setPosition(1.0);
+            } else if (gamepad1.dpad_down) {
+                myRobot.clawServo.setPosition(0.0);
             }
 
 //            drive(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
@@ -142,6 +166,10 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             telemetry.addData("Intake motor", "%.3f", myRobot.intakeMotor.getPower());
             telemetry.addData("Theta Angle", theta);
 
+            telemetry.addData("Armmotor", "%.3f", myRobot.armmotor.getPower());
+            telemetry.addData("Claw pos", "%.3f", myRobot.clawServo.getPosition());
+            telemetry.addData("Arm pos", "%.3f", myRobot.armServo.getPosition());
+
             //Verify ODO setting
 
             // Read the latest data from Pinpoint
@@ -155,13 +183,13 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             telemetry.addData("Heading (degrees)",
                     Math.toDegrees(myRobot.odo.getHeading(AngleUnit.RADIANS)));
 
-            // Raw encoder readings
-            telemetry.addData("X Encoder", myRobot.odo.getEncoderX());
-            telemetry.addData("Y Encoder", myRobot.odo.getEncoderY());
-
-            // Device performance
-            telemetry.addData("Frequency (Hz)", myRobot.odo.getFrequency());
-            telemetry.addData("Loop Time (us)", myRobot.odo.getLoopTime());
+//            // Raw encoder readings
+//            telemetry.addData("X Encoder", myRobot.odo.getEncoderX());
+//            telemetry.addData("Y Encoder", myRobot.odo.getEncoderY());
+//
+//            // Device performance
+//            telemetry.addData("Frequency (Hz)", myRobot.odo.getFrequency());
+//            telemetry.addData("Loop Time (us)", myRobot.odo.getLoopTime());
 
             telemetry.update();
             idle();

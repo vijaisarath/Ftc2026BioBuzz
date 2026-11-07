@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -68,6 +69,10 @@ public class HardwareTNCreator {
 
     public IMU imu;
     GoBildaPinpointDriver odo;
+
+    public DcMotor armmotor = null;
+    public Servo armServo = null;
+    public Servo clawServo = null;
 
     public CRServo leftIntake_srv = null;
     public CRServo rightIntake_srv = null;
@@ -122,10 +127,10 @@ public class HardwareTNCreator {
          */
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-        frontLeftMotor = hardwareMap.dcMotor.get("frontleft_motor");
-        frontRightMotor = hardwareMap.dcMotor.get("frontright_motor");
-        backLeftMotor = hardwareMap.dcMotor.get("rearleft_motor");
-        backRightMotor = hardwareMap.dcMotor.get("rearright_motor");
+        frontLeftMotor = hardwareMap.dcMotor.get("fl");
+        frontRightMotor = hardwareMap.dcMotor.get("fr");
+        backLeftMotor = hardwareMap.dcMotor.get("bl");
+        backRightMotor = hardwareMap.dcMotor.get("br");
 
         shooterMotor = hardwareMap.dcMotor.get("left_shooter");
         intakeMotor = hardwareMap.dcMotor.get("intake_shooter");
@@ -133,6 +138,11 @@ public class HardwareTNCreator {
         leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
         rightIntake_srv = hardwareMap.crservo.get("rightintake_srv");
         pusher_srv = hardwareMap.crservo.get("pusher_srv");
+
+        armmotor = hardwareMap.dcMotor.get("arm_motor");
+        armServo = hardwareMap.servo.get("arm_srv");
+        clawServo = hardwareMap.servo.get("claw_srv");
+
 
         // Set the drive motor direction:
         // "Reverse" the motor that runs backwards when connected directly to the battery
