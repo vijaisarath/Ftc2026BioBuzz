@@ -28,14 +28,10 @@
  */
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.HardwareTNCreator.LIMIT_TICKS;
-import static org.firstinspires.ftc.teamcode.HardwareTNCreator.MOTOR_POWER;
-
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -57,9 +53,9 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@TeleOp(name = "Manual Drive ODO", group = "Robot")
+@TeleOp(name = "Manual Drive", group = "Robot")
 //@Disabled
-public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
+public class ManualDrive extends LinearOpMode {
     // This declares the four motors needed
     double theta;
     // declare motor speed variables

@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Autonomous Blue Depot", group = "Linear Opmode")
+@Autonomous(name = "Autonomous Blue Garden", group = "Linear Opmode")
 // @Disabled
-public class AutoRed1 extends LinearOpMode {
+public class AutoBlueGarden extends LinearOpMode {
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
@@ -73,6 +73,7 @@ public class AutoRed1 extends LinearOpMode {
 
         sleep(9000);
 
+        shooterMotorOFF();
         stopRobot();
         idle();
 

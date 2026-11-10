@@ -92,7 +92,7 @@ public class HardwareTNCreator {
 
     public final double SHOOTER_MAX_MANUAL = 0.8;
     public final double SHOOTER_MAX_AUTO = 0.397;
-    public final double PUSHERSRV_MAX_AUTO = 0.397;
+    public final double PUSHERSRV_MAX_AUTO = -0.397;
 
     HardwareMap hardwareMap = null;
     private ElapsedTime period = new ElapsedTime();
