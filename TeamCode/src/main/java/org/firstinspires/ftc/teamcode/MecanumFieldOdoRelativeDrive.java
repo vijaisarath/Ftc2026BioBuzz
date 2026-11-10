@@ -28,14 +28,20 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.HardwareTNCreator.LIMIT_TICKS;
+import static org.firstinspires.ftc.teamcode.HardwareTNCreator.MOTOR_POWER;
+
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This OpMode illustrates how to program your robot to drive field relative.  This means
@@ -55,7 +61,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 //@Disabled
 public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
     // This declares the four motors needed
-    double FWD;
     double theta;
     // declare motor speed variables
     double FR;
@@ -75,6 +80,7 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
     RevHubOrientationOnRobot orientationOnRobot = new
             RevHubOrientationOnRobot(logoDirection, usbDirection);
+    private int centerPosition = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -85,30 +91,38 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        FWD = 0.36;
-        myRobot.armServo.scaleRange(0.25,0.6);
+        myRobot.armServo.scaleRange(0.25, 0.6);
         myRobot.armServo.setPosition(0.0);
+        myRobot.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
+
+        centerPosition = myRobot.motor.getCurrentPosition();
+
+        boolean previousA = false;
+        boolean previousB = false;
 
         while (opModeIsActive()) {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
 
             if (gamepad1.a) {
-                myRobot.armServo.setPosition(0.75); // DOWN
-            } else if (gamepad1.b) {
-                myRobot.armServo.setPosition(0.0); // UP
+                moveArm(0.1, -75);
+               //myRobot.motor.setPower(0);
+            }
+            if (gamepad1.b) {
+                moveArm(0.1, -10);
+                //myRobot.motor.setPower(0);
             }
 
-            if (start < 0 || gamepad1.a) {
+            if (start < 1) {
                 sleep(200);
                 myRobot.odo.resetPosAndIMU();
                 telemetry.addLine("Reset completed");
                 telemetry.update();
-                sleep(500);
+                sleep(200);
                 start++;
             }
 
@@ -122,7 +136,6 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
                 myRobot.armmotor.setPower(0);
             }
 
-
             if (gamepad1.dpad_up) {
                 myRobot.clawServo.setPosition(1.0);
             } else if (gamepad1.dpad_down) {
@@ -131,15 +144,12 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
 
 //            drive(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
             driveFieldRelative(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
-
             //GAMEPAD 2
-            FWD = Math.max(-myRobot.SHOOTER_MAX_MANUAL, Math.min(FWD, myRobot.SHOOTER_MAX_MANUAL));
-
             // ON/OFF shooter
             if (gamepad2.x) {
-                myRobot.leftIntake_srv.setPower(1.0);
-                myRobot.rightIntake_srv.setPower(1.0);
-                myRobot.pusher_srv.setPower(0.5);
+                myRobot.leftIntake_srv.setPower(-1.0);
+                myRobot.rightIntake_srv.setPower(-1.0);
+                myRobot.pusher_srv.setPower(-1.0);
                 myRobot.intakeMotor.setPower(1.0);
             } else if (gamepad2.y) {
                 //myRobot.leftShooter.setPower(0);
@@ -161,27 +171,31 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
             telemetry.addData("FL | FR", "%.3f | %.3f", FL, FR);
             telemetry.addData("BL | BR", "%.3f | %.3f", BL, BR);
 
-            telemetry.addData("FWD Shooter", "%.3f", FWD);
-            telemetry.addData("Left Shooter", "%.3f", myRobot.shooterMotor.getPower());
+            telemetry.addData("Ball Shooter", "%.3f", myRobot.shooterMotor.getPower());
+
+            telemetry.addData("============","");
             telemetry.addData("Intake motor", "%.3f", myRobot.intakeMotor.getPower());
-            telemetry.addData("Theta Angle", theta);
+            telemetry.addData("Servo Push", "%.3f", myRobot.pusher_srv.getPower());
+            telemetry.addData("Servo Intake", "%.3f", myRobot.leftIntake_srv.getPower());
+
+            telemetry.addData("============","");
 
             telemetry.addData("Armmotor", "%.3f", myRobot.armmotor.getPower());
             telemetry.addData("Claw pos", "%.3f", myRobot.clawServo.getPosition());
             telemetry.addData("Arm pos", "%.3f", myRobot.armServo.getPosition());
+            telemetry.addData("Arm C->T position: ", "%4d -> %4d", myRobot.motor.getCurrentPosition(), myRobot.motor.getTargetPosition());
 
             //Verify ODO setting
-
             // Read the latest data from Pinpoint
-             myRobot.odo.update();
+            myRobot.odo.update();
 
             // Position
-            telemetry.addData("X Position (mm)", myRobot.odo.getPosX(DistanceUnit.CM));
-            telemetry.addData("Y Position (mm)", myRobot.odo.getPosY(DistanceUnit.CM));
-
-            // Heading
-            telemetry.addData("Heading (degrees)",
-                    Math.toDegrees(myRobot.odo.getHeading(AngleUnit.RADIANS)));
+//            telemetry.addData("X Position (mm)", myRobot.odo.getPosX(DistanceUnit.CM));
+//            telemetry.addData("Y Position (mm)", myRobot.odo.getPosY(DistanceUnit.CM));
+//
+//            // Heading
+//            telemetry.addData("Heading (degrees)",
+//                    Math.toDegrees(myRobot.odo.getHeading(AngleUnit.RADIANS)));
 
 //            // Raw encoder readings
 //            telemetry.addData("X Encoder", myRobot.odo.getEncoderX());
@@ -190,10 +204,8 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
 //            // Device performance
 //            telemetry.addData("Frequency (Hz)", myRobot.odo.getFrequency());
 //            telemetry.addData("Loop Time (us)", myRobot.odo.getLoopTime());
-
             telemetry.update();
             idle();
-
         }
 
         if (isStopRequested()) {
@@ -261,5 +273,19 @@ public class MecanumFieldOdoRelativeDrive extends LinearOpMode {
 
         // Finally, call the drive method with robot relative forward and right amounts
         drive(newForward, newRight, rotate);
+    }
+
+    public void moveArm(double speed, int ticks) {
+        ticks = Range.clip(ticks, -100, 0);
+
+        if (opModeIsActive()) {
+            myRobot.motor.setTargetPosition(ticks);
+            myRobot.motor.setPower(Math.abs(speed));
+            myRobot.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            myRobot.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+        if (myRobot.motor.isBusy()) {
+            telemetry.addData("Status", "In ARM Motor");
+        }
     }
 }

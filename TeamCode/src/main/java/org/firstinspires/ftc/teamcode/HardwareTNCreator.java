@@ -26,19 +26,16 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
@@ -71,26 +68,37 @@ public class HardwareTNCreator {
     GoBildaPinpointDriver odo;
 
     public DcMotor armmotor = null;
+    public DcMotor motor = null;
+
     public Servo armServo = null;
     public Servo clawServo = null;
 
     public CRServo leftIntake_srv = null;
     public CRServo rightIntake_srv = null;
     public CRServo pusher_srv = null;
+
+    // Yellow Jacket 19.2:1
+    private static final double TICKS_PER_REV = 537.7;
+
+    // 30 degree movement
+    public static final int LIMIT_TICKS = (int) Math.round(TICKS_PER_REV * 30.0 / 360.0);
+    public static final double MOTOR_POWER = 0.1;
+
     public static final double SHOOTER_SPEED = 0.35;
     public final double INTAKE_SPEED = 1.00;
 
-    public final double  MOTOR_MAX_AUTO = 0.75;
+    public final double MOTOR_MAX_AUTO = 0.75;
     public final double MOTOR_MAX_MANUAL = 0.80;
 
     public final double SHOOTER_MAX_MANUAL = 0.8;
     public final double SHOOTER_MAX_AUTO = 0.397;
+    public final double PUSHERSRV_MAX_AUTO = 0.397;
+
     HardwareMap hardwareMap = null;
     private ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
     public HardwareTNCreator() {
-
     }
 
     /* Initialize standard Hardware interfaces */
@@ -99,7 +107,7 @@ public class HardwareTNCreator {
         hardwareMap = hwMap;
 
         imu = hardwareMap.get(IMU.class, "imu");
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
                    /*
         Set the odometry pod positions relative to the point that the odometry computer tracks around.
         The X pod offset refers to how far sideways from the tracking point the
@@ -119,7 +127,6 @@ public class HardwareTNCreator {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         //odo.setEncoderResolution(13.26291192, DistanceUnit.MM);
 
-
         /*
         Set the direction that each of the two odometry pods count. The X (forward) pod should
         increase when you move the robot forward. And the Y (strafe) pod should increase when
@@ -133,20 +140,17 @@ public class HardwareTNCreator {
         backRightMotor = hardwareMap.dcMotor.get("br");
 
         shooterMotor = hardwareMap.dcMotor.get("left_shooter");
-        intakeMotor = hardwareMap.dcMotor.get("intake_shooter");
+        intakeMotor = hardwareMap.dcMotor.get("intake_motor");
 
         leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
         rightIntake_srv = hardwareMap.crservo.get("rightintake_srv");
         pusher_srv = hardwareMap.crservo.get("pusher_srv");
 
         armmotor = hardwareMap.dcMotor.get("arm_motor");
+        motor = hardwareMap.dcMotor.get("arm_ang_motor");
+
         armServo = hardwareMap.servo.get("arm_srv");
         clawServo = hardwareMap.servo.get("claw_srv");
-
-
-        // Set the drive motor direction:
-        // "Reverse" the motor that runs backwards when connected directly to the battery
-        // These polarities are for the Neverest 20 motors
 
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);// Changed
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -171,5 +175,9 @@ public class HardwareTNCreator {
         leftIntake_srv.setDirection(DcMotorSimple.Direction.FORWARD);
         rightIntake_srv.setDirection(DcMotorSimple.Direction.REVERSE);
         pusher_srv.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        motor.setDirection(DcMotor.Direction.FORWARD);
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
     }
 }
