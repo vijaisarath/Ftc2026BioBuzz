@@ -64,6 +64,7 @@ public class ManualDrive extends LinearOpMode {
     double BR;
     double BL;
 
+    double SHOOTER_SPEED=0.5;
     int start = 0;
     private final ElapsedTime runtime = new ElapsedTime();
     HardwareTNCreator myRobot = new HardwareTNCreator();
@@ -71,9 +72,9 @@ public class ManualDrive extends LinearOpMode {
     // This declares the IMU needed to get the current direction the robot is facing
     // This needs to be changed to match the orientation on your robot
     RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
-            RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+            RevHubOrientationOnRobot.LogoFacingDirection.UP;
     RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
-            RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
+            RevHubOrientationOnRobot.UsbFacingDirection.LEFT;
     RevHubOrientationOnRobot orientationOnRobot = new
             RevHubOrientationOnRobot(logoDirection, usbDirection);
     private int centerPosition = 0;
@@ -106,9 +107,12 @@ public class ManualDrive extends LinearOpMode {
 
             if (gamepad1.a) {
                 moveArm(0.1, -75);
+                myRobot.rgbLight.setPosition(myRobot.GREEN);
+
                //myRobot.motor.setPower(0);
             }
             if (gamepad1.b) {
+                myRobot.rgbLight.setPosition(myRobot.RED);
                 moveArm(0.1, -10);
                 //myRobot.motor.setPower(0);
             }
@@ -126,16 +130,22 @@ public class ManualDrive extends LinearOpMode {
                 myRobot.armmotor.setPower(0.5);
                 sleep(950);
                 myRobot.armmotor.setPower(0);
+                myRobot.rgbLight.setPosition(myRobot.BLUE);
             } else if (gamepad1.y) {
                 myRobot.armmotor.setPower(-0.5);
                 sleep(950);
                 myRobot.armmotor.setPower(0);
+                myRobot.rgbLight.setPosition(myRobot.OFF);
             }
 
             if (gamepad1.dpad_up) {
                 myRobot.clawServo.setPosition(1.0);
+                myRobot.rgbLight.setPosition(myRobot.ORANGE);
+
             } else if (gamepad1.dpad_down) {
                 myRobot.clawServo.setPosition(0.0);
+                myRobot.rgbLight.setPosition(myRobot.OFF);
+
             }
 
 //            drive(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
@@ -145,23 +155,32 @@ public class ManualDrive extends LinearOpMode {
             if (gamepad2.x) {
                 myRobot.leftIntake_srv.setPower(-1.0);
                 myRobot.rightIntake_srv.setPower(-1.0);
-                myRobot.pusher_srv.setPower(-1.0);
                 myRobot.intakeMotor.setPower(1.0);
+                myRobot.rgbLight.setPosition(myRobot.BLUE);
             } else if (gamepad2.y) {
                 //myRobot.leftShooter.setPower(0);
                 myRobot.leftIntake_srv.setPower(0);
                 myRobot.rightIntake_srv.setPower(0);
                 myRobot.intakeMotor.setPower(0);
-                myRobot.pusher_srv.setPower(0.0);
+                myRobot.rgbLight.setPosition(myRobot.OFF);
+
             }
 
             // ON/OFF intake wheel
             if (gamepad2.a) {
-                myRobot.shooterMotor.setPower(0.5);
-
+                myRobot.shooterMotor.setPower(0.6);
+                myRobot.rgbLight.setPosition(myRobot.GREEN);
             } else if (gamepad2.b) {
                 myRobot.shooterMotor.setPower(0);
+                myRobot.rgbLight.setPosition(myRobot.OFF);
+            }
 
+            if(gamepad2.dpad_up){
+                myRobot.rgbLight.setPosition(myRobot.ORANGE);
+                myRobot.pusher_srv.setPower(-1.0);
+            } else if (gamepad2.dpad_down) {
+                myRobot.pusher_srv.setPower(0.0);
+                myRobot.rgbLight.setPosition(myRobot.OFF);
             }
 
             telemetry.addData("FL | FR", "%.3f | %.3f", FL, FR);

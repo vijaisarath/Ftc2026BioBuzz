@@ -73,6 +73,8 @@ public class HardwareTNCreator {
     public Servo armServo = null;
     public Servo clawServo = null;
 
+    public Servo rgbLight = null;
+
     public CRServo leftIntake_srv = null;
     public CRServo rightIntake_srv = null;
     public CRServo pusher_srv = null;
@@ -91,8 +93,17 @@ public class HardwareTNCreator {
     public final double MOTOR_MAX_MANUAL = 0.80;
 
     public final double SHOOTER_MAX_MANUAL = 0.8;
-    public final double SHOOTER_MAX_AUTO = 0.397;
-    public final double PUSHERSRV_MAX_AUTO = -0.397;
+    public final double SHOOTER_MAX_AUTO = 0.6;
+    public final double PUSHERSRV_MAX_AUTO = -0.9;
+
+    public  final double OFF    = 0.000;
+    public final double RED    = 0.280;
+    public  final double ORANGE = 0.333;
+    public  final double YELLOW = 0.388;
+    public  final double GREEN  = 0.500;
+    public  final double BLUE   = 0.611;
+    public  final double PURPLE = 0.700;
+    public  final double WHITE  = 1.000;
 
     HardwareMap hardwareMap = null;
     private ElapsedTime period = new ElapsedTime();
@@ -151,6 +162,7 @@ public class HardwareTNCreator {
 
         armServo = hardwareMap.servo.get("arm_srv");
         clawServo = hardwareMap.servo.get("claw_srv");
+        rgbLight = hardwareMap.servo.get("rgb_srv");
 
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);// Changed
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);

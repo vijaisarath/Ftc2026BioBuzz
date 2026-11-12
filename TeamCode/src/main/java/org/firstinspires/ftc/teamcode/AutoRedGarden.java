@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "Autonomous Red Garden", group = "Linear Opmode")
-// @Disabled
+@Disabled
 public class AutoRedGarden extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -60,21 +61,15 @@ public class AutoRedGarden extends LinearOpMode {
         double speed = 0.62;
         double speed_intake = 0.4;
 
-        //moveBack(0.40, 3.00f);
-        //moveFront(0.40,3.00f);
-//        rotateClockWise(0.10, 40.0f);
-//        rotateAntiClockWise(0.1, 40.0f);
-//        shooterMotorON();
-//        shooterMotorOFF();
-
-
-        moveFront(0.40,3.00f);
-        sleep(200);
+        moveBack(0.40,3.00f);
+        sleep(10000);
 
         shooterMotorON();
-        sleep(3000);
+        sleep(4000);
 
         shooterMotorOFF();
+        moveRight(0.4,3.0f);
+        moveBack(0.40,30.00f);
         moveRight(0.4,3.0f);
 
         stopRobot();

@@ -60,24 +60,15 @@ public class AutoBlueLoading extends LinearOpMode {
         double speed = 0.62;
         double speed_intake = 0.4;
 
-        //moveBack(0.40, 3.00f);
-        //moveFront(0.40,3.00f);
-//        rotateClockWise(0.10, 40.0f);
-//        rotateAntiClockWise(0.1, 40.0f);
-//        shooterMotorON();
-//        shooterMotorOFF();
-
-        moveFront(0.40,3.00f);
-        sleep(200);
+        moveFront(0.4,2.00f);
+        sleep(6000);
 
         shooterMotorON();
-        sleep(3000);
-
+        sleep(8000);
         shooterMotorOFF();
-        moveLeft(0.4,3.0f);
 
-        stopRobot();
-        idle();
+        moveFront(0.4,6.00f);
+        moveRight(0.4,70.0f);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -107,6 +98,7 @@ public class AutoBlueLoading extends LinearOpMode {
 
 
     private void shooterMotorON() {
+        myRobot.rgbLight.setPosition(myRobot.GREEN);
         myRobot.shooterMotor.setPower(myRobot.SHOOTER_MAX_AUTO);
         myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
         sendTelemetryData("ShooterMotorRightON");
@@ -144,6 +136,7 @@ public class AutoBlueLoading extends LinearOpMode {
     }
 
     private void moveFront(double power, float distanceInInch) {
+        myRobot.rgbLight.setPosition(myRobot.GREEN);
         int distTick = (int) (distanceInInch * COUNTS_PER_INCH);
         FL = BL = FR = BR = distTick;
         setTargetToMotors(power, "moveFront");
