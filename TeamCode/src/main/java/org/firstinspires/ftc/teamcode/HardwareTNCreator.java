@@ -30,6 +30,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -61,7 +62,7 @@ public class HardwareTNCreator {
     public DcMotor backLeftMotor = null;
     public DcMotor backRightMotor = null;
 
-    public DcMotor shooterMotor = null;
+    public DcMotorEx shooterMotor;
     public DcMotor intakeMotor = null;
 
     public IMU imu;
@@ -90,11 +91,14 @@ public class HardwareTNCreator {
     public final double INTAKE_SPEED = 1.00;
 
     public final double MOTOR_MAX_AUTO = 0.75;
-    public final double MOTOR_MAX_MANUAL = 0.80;
+    public final double MOTOR_MAX_MANUAL = 0.88;
 
     public final double SHOOTER_MAX_MANUAL = 0.8;
     public final double SHOOTER_MAX_AUTO = 0.6;
-    public final double PUSHERSRV_MAX_AUTO = -0.9;
+    public final double PUSHERSRV_MAX_AUTO = -0.95;
+    public final double SHOOTER_TICKS_PER_REV = 28.0;
+    public final double SHOOTER_TARGET_RPM = 2580;
+    public final double SHOOTER_targetTicksPerSecond =  SHOOTER_TARGET_RPM * SHOOTER_TICKS_PER_REV / 60.0;
 
     public  final double OFF    = 0.000;
     public final double RED    = 0.280;
@@ -150,7 +154,7 @@ public class HardwareTNCreator {
         backLeftMotor = hardwareMap.dcMotor.get("bl");
         backRightMotor = hardwareMap.dcMotor.get("br");
 
-        shooterMotor = hardwareMap.dcMotor.get("left_shooter");
+        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter_motor" );
         intakeMotor = hardwareMap.dcMotor.get("intake_motor");
 
         leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
@@ -180,9 +184,11 @@ public class HardwareTNCreator {
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         shooterMotor.setDirection(DcMotor.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
-
+        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
         leftIntake_srv.setDirection(DcMotorSimple.Direction.FORWARD);
         rightIntake_srv.setDirection(DcMotorSimple.Direction.REVERSE);

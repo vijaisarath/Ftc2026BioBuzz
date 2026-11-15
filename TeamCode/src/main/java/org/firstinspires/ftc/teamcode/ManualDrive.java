@@ -106,6 +106,7 @@ public class ManualDrive extends LinearOpMode {
             telemetry.update();
 
             if (gamepad1.a) {
+
                 moveArm(0.1, -75);
                 myRobot.rgbLight.setPosition(myRobot.GREEN);
 
@@ -152,6 +153,14 @@ public class ManualDrive extends LinearOpMode {
             driveFieldRelative(-gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
             //GAMEPAD 2
             // ON/OFF shooter
+
+            if (gamepad2.left_trigger > 0.1) {
+                for(int i=0;i<2000;i++) {
+                    myRobot.intakeMotor.setPower(-1.0);
+                }
+                myRobot.intakeMotor.setPower(0);
+            }
+
             if (gamepad2.x) {
                 myRobot.leftIntake_srv.setPower(-1.0);
                 myRobot.rightIntake_srv.setPower(-1.0);
@@ -163,15 +172,14 @@ public class ManualDrive extends LinearOpMode {
                 myRobot.rightIntake_srv.setPower(0);
                 myRobot.intakeMotor.setPower(0);
                 myRobot.rgbLight.setPosition(myRobot.OFF);
-
             }
 
             // ON/OFF intake wheel
             if (gamepad2.a) {
-                myRobot.shooterMotor.setPower(0.6);
+                myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
                 myRobot.rgbLight.setPosition(myRobot.GREEN);
             } else if (gamepad2.b) {
-                myRobot.shooterMotor.setPower(0);
+                myRobot.shooterMotor.setVelocity(0);
                 myRobot.rgbLight.setPosition(myRobot.OFF);
             }
 
@@ -183,10 +191,17 @@ public class ManualDrive extends LinearOpMode {
                 myRobot.rgbLight.setPosition(myRobot.OFF);
             }
 
+            if (gamepad2.right_trigger > 0.1) {
+                for(int i=0;i<2000;i++) {
+                    myRobot.pusher_srv.setPower(0.8);
+                }
+                myRobot.pusher_srv.setPower(0);
+            }
+
             telemetry.addData("FL | FR", "%.3f | %.3f", FL, FR);
             telemetry.addData("BL | BR", "%.3f | %.3f", BL, BR);
 
-            telemetry.addData("Ball Shooter", "%.3f", myRobot.shooterMotor.getPower());
+            telemetry.addData("Ball Shooter", "%.3f -> %.3f", myRobot.SHOOTER_TARGET_RPM, (myRobot.shooterMotor.getVelocity() * 60.0  / myRobot.SHOOTER_TICKS_PER_REV));
 
             telemetry.addData("============","");
             telemetry.addData("Intake motor", "%.3f", myRobot.intakeMotor.getPower());
@@ -229,7 +244,7 @@ public class ManualDrive extends LinearOpMode {
             myRobot.backLeftMotor.setPower(0);
             myRobot.backRightMotor.setPower(0);
 
-            myRobot.shooterMotor.setPower(0);
+            myRobot.shooterMotor.setVelocity(0);
             myRobot.intakeMotor.setPower(0);
         }
     }

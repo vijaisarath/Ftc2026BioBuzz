@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Autonomous Blue Garden", group = "Linear Opmode")
-@Disabled
-public class AutoBlueGarden extends LinearOpMode {
+@Autonomous(name = "Blue Garden", group = "Linear Opmode")
+//@Disabled
+public class AutoBlueGarden extends LinearOpMode{
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
@@ -58,19 +58,17 @@ public class AutoBlueGarden extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
-        double speed = 0.62;
-        double speed_intake = 0.4;
 
-        moveBack(0.40,3.00f);
-        sleep(10000);
+        moveFront(0.4,2.00f);
+        sleep(8000);
 
-        shooterMotorON();
-        sleep(4000);
-
+        shooterMotorON(1500);
+        sleep(14000);
         shooterMotorOFF();
-        moveRight(0.4,3.0f);
-        moveBack(0.4,30.00f);
-        moveRight(0.4,3.0f);
+
+        moveFront(0.4,7.50f);
+        moveLeft(0.4,25.0f);
+        rotateClockWise(0.6,20.0f);
 
         stopRobot();
         idle();
@@ -101,16 +99,16 @@ public class AutoBlueGarden extends LinearOpMode {
         myRobot.intakeMotor.setPower(0);
     }
 
-
-    private void shooterMotorON() {
-        myRobot.shooterMotor.setPower(myRobot.SHOOTER_MAX_AUTO);
+    private void shooterMotorON(long sec) {
+        myRobot.rgbLight.setPosition(myRobot.GREEN);
+        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+        sleep(sec);
         myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
         sendTelemetryData("ShooterMotorRightON");
     }
 
     private void shooterMotorOFF() {
-        myRobot.shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        myRobot.shooterMotor.setPower(0);
+        myRobot.shooterMotor.setVelocity(0);
         myRobot.pusher_srv.setPower(0);
         sendTelemetryData("ShooterMotorRightOFF");
     }
@@ -140,6 +138,7 @@ public class AutoBlueGarden extends LinearOpMode {
     }
 
     private void moveFront(double power, float distanceInInch) {
+        myRobot.rgbLight.setPosition(myRobot.GREEN);
         int distTick = (int) (distanceInInch * COUNTS_PER_INCH);
         FL = BL = FR = BR = distTick;
         setTargetToMotors(power, "moveFront");
@@ -282,7 +281,6 @@ public class AutoBlueGarden extends LinearOpMode {
 
         telemetry.addData("FL Wheel Pwr :", myRobot.frontLeftMotor.getPower());
 
-
         telemetry.addData("Intake Pwr :", myRobot.intakeMotor.getPower());
         telemetry.addData("Intake Dir :", myRobot.intakeMotor.getDirection());
 
@@ -290,10 +288,8 @@ public class AutoBlueGarden extends LinearOpMode {
         telemetry.addData("Shooter R Dir :", myRobot.pusher_srv.getDirection());
         telemetry.addData("Shooter L Dir :", myRobot.shooterMotor.getDirection());
 
-        //  telemetry.addData("Distance :", myRobot.distanceSensor.getDistance(DistanceUnit.CM));
+        telemetry.addData("Ball Shooter", "%.3f -> %.3f", myRobot.SHOOTER_TARGET_RPM, (myRobot.shooterMotor.getVelocity() * 60.0  / myRobot.SHOOTER_TICKS_PER_REV));
 
-        telemetry.addData("Wheel Max Power: ", myRobot.MOTOR_MAX_AUTO);
-        telemetry.addData("Shooter Max Power: ", myRobot.SHOOTER_MAX_AUTO);
         telemetry.update();
     }
 
