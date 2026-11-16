@@ -26,15 +26,18 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This is NOT an opmode.
@@ -59,26 +62,58 @@ public class HardwareTNCreator {
     public DcMotor backLeftMotor = null;
     public DcMotor backRightMotor = null;
 
-    public DcMotor shooterMotor = null;
+    public DcMotorEx shooterMotor;
     public DcMotor intakeMotor = null;
+
+    public IMU imu;
+    GoBildaPinpointDriver odo;
+
+    public DcMotor armmotor = null;
+    public DcMotor motor = null;
+
+    public Servo armServo = null;
+    public Servo clawServo = null;
+
+    public Servo rgbLight = null;
 
     public CRServo leftIntake_srv = null;
     public CRServo rightIntake_srv = null;
     public CRServo pusher_srv = null;
+
+    // Yellow Jacket 19.2:1
+    private static final double TICKS_PER_REV = 537.7;
+
+    // 30 degree movement
+    public static final int LIMIT_TICKS = (int) Math.round(TICKS_PER_REV * 30.0 / 360.0);
+    public static final double MOTOR_POWER = 0.1;
+
     public static final double SHOOTER_SPEED = 0.35;
     public final double INTAKE_SPEED = 1.00;
 
-    public final double  MOTOR_MAX_AUTO = 0.75;
-    public final double MOTOR_MAX_MANUAL = 0.80;
+    public final double MOTOR_MAX_AUTO = 0.75;
+    public final double MOTOR_MAX_MANUAL = 0.88;
 
     public final double SHOOTER_MAX_MANUAL = 0.8;
-    public final double SHOOTER_MAX_AUTO = 0.397;
+    public final double SHOOTER_MAX_AUTO = 0.6;
+    public final double PUSHERSRV_MAX_AUTO = -0.95;
+    public final double SHOOTER_TICKS_PER_REV = 28.0;
+    public final double SHOOTER_TARGET_RPM = 2580;
+    public final double SHOOTER_targetTicksPerSecond =  SHOOTER_TARGET_RPM * SHOOTER_TICKS_PER_REV / 60.0;
+
+    public  final double OFF    = 0.000;
+    public final double RED    = 0.280;
+    public  final double ORANGE = 0.333;
+    public  final double YELLOW = 0.388;
+    public  final double GREEN  = 0.500;
+    public  final double BLUE   = 0.611;
+    public  final double PURPLE = 0.700;
+    public  final double WHITE  = 1.000;
+
     HardwareMap hardwareMap = null;
     private ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
     public HardwareTNCreator() {
-
     }
 
     /* Initialize standard Hardware interfaces */
@@ -86,21 +121,52 @@ public class HardwareTNCreator {
         // Save reference to Hardware map
         hardwareMap = hwMap;
 
-        frontLeftMotor = hardwareMap.dcMotor.get("frontleft_motor");
-        frontRightMotor = hardwareMap.dcMotor.get("frontright_motor");
-        backLeftMotor = hardwareMap.dcMotor.get("rearleft_motor");
-        backRightMotor = hardwareMap.dcMotor.get("rearright_motor");
+        imu = hardwareMap.get(IMU.class, "imu");
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
+                   /*
+        Set the odometry pod positions relative to the point that the odometry computer tracks around.
+        The X pod offset refers to how far sideways from the tracking point the
+        X (forward) odometry pod is. Left of the center is a positive number,
+        right of center is a negative number. the Y pod offset refers to how far forwards from
+        the tracking point the Y (strafe) odometry pod is. forward of center is a positive number,
+        backwards is a negative number.
+         */
+        odo.setOffsets(110.0, -68.0, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
 
-        shooterMotor = hardwareMap.dcMotor.get("left_shooter");
-        intakeMotor = hardwareMap.dcMotor.get("intake_shooter");
+        /*
+        Set the kind of pods used by your robot. If you're using goBILDA odometry pods, select either
+        the goBILDA_SWINGARM_POD, or the goBILDA_4_BAR_POD.
+        If you're using another kind of odometry pod, uncomment setEncoderResolution and input the
+        number of ticks per unit of your odometry pod.
+         */
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        //odo.setEncoderResolution(13.26291192, DistanceUnit.MM);
+
+        /*
+        Set the direction that each of the two odometry pods count. The X (forward) pod should
+        increase when you move the robot forward. And the Y (strafe) pod should increase when
+        you move the robot to the left.
+         */
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+
+        frontLeftMotor = hardwareMap.dcMotor.get("fl");
+        frontRightMotor = hardwareMap.dcMotor.get("fr");
+        backLeftMotor = hardwareMap.dcMotor.get("bl");
+        backRightMotor = hardwareMap.dcMotor.get("br");
+
+        shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter_motor" );
+        intakeMotor = hardwareMap.dcMotor.get("intake_motor");
 
         leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
         rightIntake_srv = hardwareMap.crservo.get("rightintake_srv");
         pusher_srv = hardwareMap.crservo.get("pusher_srv");
 
-        // Set the drive motor direction:
-        // "Reverse" the motor that runs backwards when connected directly to the battery
-        // These polarities are for the Neverest 20 motors
+        armmotor = hardwareMap.dcMotor.get("arm_motor");
+        motor = hardwareMap.dcMotor.get("arm_ang_motor");
+
+        armServo = hardwareMap.servo.get("arm_srv");
+        clawServo = hardwareMap.servo.get("claw_srv");
+        rgbLight = hardwareMap.servo.get("rgb_srv");
 
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);// Changed
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -118,12 +184,18 @@ public class HardwareTNCreator {
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         shooterMotor.setDirection(DcMotor.Direction.FORWARD);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
-
+        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
         leftIntake_srv.setDirection(DcMotorSimple.Direction.FORWARD);
         rightIntake_srv.setDirection(DcMotorSimple.Direction.REVERSE);
-        pusher_srv.setDirection(DcMotorSimple.Direction.REVERSE);
+        pusher_srv.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        motor.setDirection(DcMotor.Direction.FORWARD);
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
     }
 }
