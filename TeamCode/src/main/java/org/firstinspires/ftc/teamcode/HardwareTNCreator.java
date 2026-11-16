@@ -157,9 +157,9 @@ public class HardwareTNCreator {
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter_motor" );
         intakeMotor = hardwareMap.dcMotor.get("intake_motor");
 
-        leftIntake_srv = hardwareMap.crservo.get("leftintake_srv");
-        rightIntake_srv = hardwareMap.crservo.get("rightintake_srv");
-        pusher_srv = hardwareMap.crservo.get("pusher_srv");
+        leftIntake_srv = hardwareMap.crservo.get("lintake_srv");
+        rightIntake_srv = hardwareMap.crservo.get("rintake_srv");
+        pusher_srv = hardwareMap.crservo.get("push_srv");
 
         armmotor = hardwareMap.dcMotor.get("arm_motor");
         motor = hardwareMap.dcMotor.get("arm_ang_motor");
