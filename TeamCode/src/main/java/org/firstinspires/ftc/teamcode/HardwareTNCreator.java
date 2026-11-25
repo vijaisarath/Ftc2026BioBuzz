@@ -97,8 +97,28 @@ public class HardwareTNCreator {
     public final double SHOOTER_MAX_AUTO = 0.6;
     public final double PUSHERSRV_MAX_AUTO = -0.95;
     public final double SHOOTER_TICKS_PER_REV = 28.0;
-    public final double SHOOTER_TARGET_RPM = 2580;
-    public final double SHOOTER_targetTicksPerSecond =  SHOOTER_TARGET_RPM * SHOOTER_TICKS_PER_REV / 60.0;
+    public final double SHOOTER_TARGET_RPM = 2610;
+
+    public final double SHOOTER_targetVelocity =  SHOOTER_TARGET_RPM * SHOOTER_TICKS_PER_REV / 60.0;
+    public final double SHOOTER_TARGET_RPM_AUTO = 2720;
+
+    public final double SHOOTER_targetVelocity_AUTO =  SHOOTER_TARGET_RPM_AUTO * SHOOTER_TICKS_PER_REV / 60.0;
+
+    static final double P = 1.70;
+    /*
+    Shoot:
+    Slow recovery after each ball: increase P by 10%.
+    Oscillating or overshooting RPM: reduce P by 10%.
+     */
+    static final double I = 0.4;
+    //If you still have persistent speed error after tuning F and P, experiment with a small I value.
+    static final double D = 0.0;
+    static final double F = 9.350;
+    /*
+    Empty rotate:
+    Actual RPM consistently below target: increase F slightly.
+    Actual RPM consistently above target: decrease F slightly.
+     */
 
     public  final double OFF    = 0.000;
     public final double RED    = 0.280;
@@ -183,10 +203,15 @@ public class HardwareTNCreator {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
+
         shooterMotor.setDirection(DcMotor.Direction.FORWARD);
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterMotor.setVelocityPIDFCoefficients(
+                P,I,D,F
+        );
+
 
         intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 

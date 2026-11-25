@@ -1,13 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Red Loading", group = "Linear Opmode")
-// @Disabled
+import android.util.Size;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
+
+import java.util.List;
+import java.util.Locale;
+
+@Autonomous(name = "Loading", group = "Linear Opmode")
+//@Disabled
 public class AutoRedLoading extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -27,6 +39,14 @@ public class AutoRedLoading extends LinearOpMode {
     static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
 
+    //Camera
+    private AprilTagProcessor aprilTag;
+    private VisionPortal visionPortal;
+
+    private String detectedCluster = "NONE";
+    private boolean blueClusterFound = false;
+    private boolean scorableCell = false;
+    private ElapsedTime timer = new ElapsedTime();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -46,7 +66,7 @@ public class AutoRedLoading extends LinearOpMode {
         BR = 0;
 
         // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("Red1", "Starting at %7d : %7d : %7d : %7d",
+        telemetry.addData("BlueL", "Starting at %7d : %7d : %7d : %7d",
                 myRobot.frontLeftMotor.getCurrentPosition(),
                 myRobot.frontRightMotor.getCurrentPosition(),
                 myRobot.backLeftMotor.getCurrentPosition(),
@@ -54,19 +74,79 @@ public class AutoRedLoading extends LinearOpMode {
         );
         telemetry.update();
 
+        initAprilTag();
+
+        while (!isStarted() && !isStopRequested()) {
+            detectAprilTagCluster();
+            sleep(20);
+        }
+
+        if (isStopRequested()) {
+            visionPortal.close();
+            return;
+        }
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
-        moveFront(0.4,2.00f);
-        sleep(14000);
-        shooterMotorON(1500);
-        sleep(8000);
-        shooterMotorOFF();
+        moveFront(0.4, 2.00f);
+        boolean tagFound = false;
 
-        moveFront(0.4,7.50f);
-        moveRight(0.4,45.0f);
-        rotateAntiClockWise(0.6,20.0f);
+        while (timer.seconds() < 17 && !tagFound) {
+            telemetry.addLine("Waiting for Barcode detection! " + timer.seconds());
+            telemetry.update();
+
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+
+            for (AprilTagDetection detection : detections) {
+
+                // Check whether this detection is a cluster
+                if (detection instanceof AprilTagClusterDetection) {
+
+                    AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
+                    String name = cluster.metadata.name.toLowerCase(Locale.US);
+                    String shortName = cluster.metadata.shortName.toLowerCase(Locale.US);
+
+                    telemetry.addData("Cluster Name", name);
+                    telemetry.addData("Short Name", shortName);
+                    telemetry.addData("X", cluster.ftcPose.x);
+                    telemetry.addData("Y", cluster.ftcPose.y);
+                    telemetry.addData("Yaw", cluster.ftcPose.yaw);
+                    telemetry.addData("Camera-to-Tag Distance", "%.1f inches", cluster.ftcPose.range);
+                    telemetry.addData("Visible Cluster %", cluster.percentClusterFound);
+
+                    // Identify Blue Audience-side cluster
+                    boolean isBlue = !name.isEmpty(); //name.contains("blue") || shortName.contains("blue");
+
+                    boolean isAudience = !name.isEmpty(); //name.contains("audience") || shortName.contains("aud");
+
+                    if (isBlue && isAudience) {
+                        tagFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+        visionPortal.close();
+
+        if (tagFound) {
+            telemetry.addLine("BLUE AUDIENCE CELL DETECTED!");
+            telemetry.addLine("SHOOTER MOTOR STARTING");
+            telemetry.update();
+            shooterMotorON(1500);
+            sleep(5000);
+            shooterMotorOFF();
+        } else {
+            telemetry.addLine("NOOO BLUE AUDIENCE CELL DETECTED!");
+            telemetry.update();
+        }
+
+        // moveBack(0.2, 2.0f);// for testing
+
+        moveFront(0.4, 7.50f);
+        moveRight(0.4, 45.0f);
+        rotateAntiClockWise(0.6, 20.0f);
 
         stopRobot();
         idle();
@@ -78,10 +158,105 @@ public class AutoRedLoading extends LinearOpMode {
             idle();
         }
         if (isStopRequested()) {
+            visionPortal.close();
             stopRobot();
+            return;
         }
     }
 
+    private void initAprilTag() {
+
+        aprilTag = new AprilTagProcessor.Builder()
+                .setLensIntrinsics(
+                        545.584,
+                        545.584,
+                        350.588,
+                        223.15
+                )
+                .build();
+
+        aprilTag.setDecimation(1);
+
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam"));
+
+        builder.setCameraResolution(new Size(640, 480));
+
+        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
+
+        builder.addProcessor(aprilTag);
+
+        visionPortal = builder.build();
+    }
+
+    private void detectAprilTagCluster() {
+
+        detectedCluster = "NONE";
+        blueClusterFound = false;
+        scorableCell = false;
+
+        List<AprilTagDetection> detections =
+                aprilTag.getDetections();
+
+        for (AprilTagDetection detection : detections) {
+
+            if (detection instanceof AprilTagClusterDetection) {
+
+                AprilTagClusterDetection cluster =
+                        (AprilTagClusterDetection) detection;
+
+                String clusterName = cluster.metadata.name;
+
+                telemetry.addData("Cluster", clusterName);
+
+                telemetry.addData(
+                        "Visible Tags",
+                        "%.1f%%",
+                        cluster.percentClusterFound * 100
+                );
+//
+//                telemetry.addData(
+//                        "Range",
+//                        "%.1f inches",
+//                        cluster.ftcPose.range
+//                );
+//
+//                telemetry.addData(
+//                        "Bearing",
+//                        "%.1f degrees",
+//                        cluster.ftcPose.bearing
+//                );
+//
+//                telemetry.addData(
+//                        "Roll",
+//                        "%.1f degrees",
+//                        cluster.ftcPose.roll
+//                );
+
+                if (!clusterName.isEmpty()) {
+
+                    blueClusterFound = true;
+                    detectedCluster = clusterName;
+
+                    // A scorable cell is normally right-side up
+                    scorableCell = Math.abs(cluster.ftcPose.roll) < 90;
+                    myRobot.rgbLight.setPosition(myRobot.RED);
+                }
+            }
+        }
+
+        telemetry.addData(
+                "Blue Cluster Found",
+                blueClusterFound
+        );
+
+        telemetry.addData(
+                "Scorable Cell",
+                scorableCell
+        );
+        telemetry.update();
+    }
 
     private void intakeClockwise() {
         myRobot.intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -97,12 +272,23 @@ public class AutoRedLoading extends LinearOpMode {
         myRobot.intakeMotor.setPower(0);
     }
 
+
     private void shooterMotorON(long sec) {
         myRobot.rgbLight.setPosition(myRobot.GREEN);
-        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetVelocity_AUTO);
         sleep(sec);
-        myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
+        pulsePusher(6,500);
         sendTelemetryData("ShooterMotorRightON");
+    }
+
+    public void pulsePusher(int cycles, long delayMs) {
+        for (int i = 0; i < cycles; i++) {
+            myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
+            sleep(delayMs);
+            myRobot.pusher_srv.setPower(1.0);
+            sleep(delayMs);
+        }
+        myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
     }
 
     private void shooterMotorOFF() {
@@ -282,13 +468,11 @@ public class AutoRedLoading extends LinearOpMode {
         telemetry.addData("Intake Pwr :", myRobot.intakeMotor.getPower());
         telemetry.addData("Intake Dir :", myRobot.intakeMotor.getDirection());
 
-        telemetry.addData("Shooter Pwr R | L :", "%f3 | %f3 ", myRobot.rightIntake_srv.getPower(), myRobot.leftIntake_srv.getPower());
+        telemetry.addData("Shooter Pwr R | L :", "%.3f | %.3f ", myRobot.rightIntake_srv.getPower(), myRobot.leftIntake_srv.getPower());
         telemetry.addData("Shooter R Dir :", myRobot.pusher_srv.getDirection());
         telemetry.addData("Shooter L Dir :", myRobot.shooterMotor.getDirection());
 
-        telemetry.addData("Ball Shooter", "%.3f -> %.3f", myRobot.SHOOTER_TARGET_RPM, (myRobot.shooterMotor.getVelocity() * 60.0  / myRobot.SHOOTER_TICKS_PER_REV));
-
+        telemetry.addData("Ball Shooter", "%.3f -> %.3f", myRobot.SHOOTER_TARGET_RPM, (myRobot.shooterMotor.getVelocity() * 60.0 / myRobot.SHOOTER_TICKS_PER_REV));
         telemetry.update();
     }
-
 }

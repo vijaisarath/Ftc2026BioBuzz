@@ -78,6 +78,7 @@ public class ManualDrive extends LinearOpMode {
     RevHubOrientationOnRobot orientationOnRobot = new
             RevHubOrientationOnRobot(logoDirection, usbDirection);
     private int centerPosition = 0;
+    boolean rTriggerPressed = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -93,13 +94,11 @@ public class ManualDrive extends LinearOpMode {
         myRobot.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Wait for the game to start (driver presses PLAY)
+        boolean previousB = false;
         waitForStart();
         runtime.reset();
 
         centerPosition = myRobot.motor.getCurrentPosition();
-
-        boolean previousA = false;
-        boolean previousB = false;
 
         while (opModeIsActive()) {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
@@ -176,7 +175,7 @@ public class ManualDrive extends LinearOpMode {
 
             // ON/OFF intake wheel
             if (gamepad2.a) {
-                myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+                myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetVelocity);
                 myRobot.rgbLight.setPosition(myRobot.GREEN);
             } else if (gamepad2.b) {
                 myRobot.shooterMotor.setVelocity(0);
@@ -192,9 +191,7 @@ public class ManualDrive extends LinearOpMode {
             }
 
             if (gamepad2.right_trigger > 0.1) {
-                for(int i=0;i<2000;i++) {
-                    myRobot.pusher_srv.setPower(0.8);
-                }
+                pulsePusher(4,400);
                 myRobot.pusher_srv.setPower(0);
             }
 
@@ -247,6 +244,16 @@ public class ManualDrive extends LinearOpMode {
             myRobot.shooterMotor.setVelocity(0);
             myRobot.intakeMotor.setPower(0);
         }
+    }
+
+    public void pulsePusher(int cycles, long delayMs) {
+        for (int i = 0; i < cycles && rTriggerPressed; i++) {
+            myRobot.pusher_srv.setPower(-0.3);
+            sleep(delayMs+400);
+            myRobot.pusher_srv.setPower(0.5);
+            sleep(delayMs-100);
+        }
+        myRobot.pusher_srv.setPower(-1.0);
     }
 
     public void drive(double forward, double right, double rotate) {

@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "Blue Loading", group = "Linear Opmode")
-// @Disabled
+@Disabled
 public class AutoBlueLoading extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -100,7 +101,7 @@ public class AutoBlueLoading extends LinearOpMode {
 
     private void shooterMotorON(long sec) {
         myRobot.rgbLight.setPosition(myRobot.GREEN);
-        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetVelocity_AUTO);
         sleep(sec);
         myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
         sendTelemetryData("ShooterMotorRightON");

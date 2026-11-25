@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Red Garden", group = "Linear Opmode")
+@Autonomous(name = "Garden", group = "Linear Opmode")
 //@Disabled
 public class AutoRedGarden extends LinearOpMode{
 
@@ -60,14 +59,16 @@ public class AutoRedGarden extends LinearOpMode{
         runtime.reset();
 
         moveFront(0.4,2.00f);
-        sleep(8000);
+        sleep(800);
 
         shooterMotorON(1500);
-        sleep(14000);
+        sleep(8000);
         shooterMotorOFF();
 
         moveFront(0.4,7.50f);
         moveLeft(0.4,25.0f);
+        moveFront(0.6,85.0f);
+        moveLeft(0.4,15.0f);
         rotateClockWise(0.6,20.0f);
 
         stopRobot();
@@ -101,10 +102,20 @@ public class AutoRedGarden extends LinearOpMode{
 
     private void shooterMotorON(long sec) {
         myRobot.rgbLight.setPosition(myRobot.GREEN);
-        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetVelocity);
         sleep(sec);
-        myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
+        pulsePusher(6,500);
         sendTelemetryData("ShooterMotorRightON");
+    }
+
+    public void pulsePusher(int cycles, long delayMs) {
+        for (int i = 0; i < cycles; i++) {
+            myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
+            sleep(delayMs+300);
+            myRobot.pusher_srv.setPower(1.0);
+            sleep(delayMs);
+        }
+        myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
     }
 
     private void shooterMotorOFF() {

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name = "Blue Garden", group = "Linear Opmode")
-//@Disabled
+@Disabled
 public class AutoBlueGarden extends LinearOpMode{
 
     /* Declare OpMode members. */
@@ -101,7 +101,7 @@ public class AutoBlueGarden extends LinearOpMode{
 
     private void shooterMotorON(long sec) {
         myRobot.rgbLight.setPosition(myRobot.GREEN);
-        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetTicksPerSecond);
+        myRobot.shooterMotor.setVelocity(myRobot.SHOOTER_targetVelocity);
         sleep(sec);
         myRobot.pusher_srv.setPower(myRobot.PUSHERSRV_MAX_AUTO);
         sendTelemetryData("ShooterMotorRightON");
